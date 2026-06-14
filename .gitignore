@@ -1,0 +1,51 @@
+
+
+data/
+
+
+
+# CSV files
+
+*.csv
+
+
+
+# Excel files
+
+*.xlsx
+
+*.xls
+
+
+
+
+
+
+
+# Jupyter checkpoints
+
+.ipynb_checkpoints/
+
+
+
+# Python cache
+
+__pycache__/
+
+*.pyc
+
+
+
+# Virtual environments
+
+venv/
+
+env/
+
+
+
+# OS files
+
+.DS_Store
+
+Thumbs.db
