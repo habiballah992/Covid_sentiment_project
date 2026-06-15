@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
 import joblib
 import os
 
@@ -35,7 +35,7 @@ def split_data(x,y):
 
 #
 def vectorize_data(x_train,x_test):
-  vectorizer=CountVectorizer()
+  vectorizer=TfidfTransformer()
   x_train=vectorizer.fit_transform(x_train)
   x_test=vectorizer.transform(x_test)
 
