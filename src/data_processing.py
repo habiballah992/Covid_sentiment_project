@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 import joblib
 import os
 import re
@@ -20,7 +20,7 @@ def cleaning_data():
   df.dropna(inplace=True)
   
   #drop empty text
-  df=df[df['clean_tweet'].str.strip != ""]
+  df = df[df['clean_tweet'].str.strip() != ""]
 
 
   df['sentiment']=[
@@ -28,6 +28,7 @@ def cleaning_data():
      else 'negative' if s=='neg' 
      else 'natural' for s in df['sentiment']
      ]
+  df["clean_tweet"] = df["clean_tweet"].apply(handle_negation)
   return df
 
 
@@ -35,17 +36,16 @@ def split_data(x,y):
   return train_test_split(x,y,test_size=0.2,random_state=42,stratify=y)
 
 #
-def vectorize_data(x_train,x_test):
-  vectorizer=TfidfTransformer()
-  x_train=vectorizer.fit_transform(x_train)
-  x_test=vectorizer.transform(x_test)
+def vectorize_data(x_train, x_test):
+    vectorizer = TfidfVectorizer(max_features=5000)
 
-  os.makedirs("/models",exist_ok=True)
-  joblib.dump(vectorizer,"models/vectorizer.pkl")
+    x_train = vectorizer.fit_transform(x_train)
+    x_test = vectorizer.transform(x_test)
 
-  return [x_train,x_test,vectorizer]
+    os.makedirs("models", exist_ok=True)
+    joblib.dump(vectorizer, "models/vectorizer.pkl")
 
-
+    return x_train, x_test, vectorizer
 
 def handle_negation(text):
     text = str(text).lower().strip()
