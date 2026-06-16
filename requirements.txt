@@ -9,3 +9,4 @@ SpeechRecognition
 pyaudio
 faster-whisper
 sounddevice
+streamlit
