@@ -32,4 +32,3 @@ evaluate_model(y_test,R_ypred)
 print("Model SVM:\n")
 evaluate_model(y_test,S_ypred)
 
-

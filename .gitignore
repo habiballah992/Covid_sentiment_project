@@ -17,6 +17,13 @@ data/
 *.xls
 
 
+# Trained models
+models/
+*.pkl
+*.joblib
+*.sav
+*.h5
+*.onnx
 
 
 
