@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfTransformer
 import joblib
 import os
+import re
 
 
 def cleaning_data():
@@ -43,3 +44,41 @@ def vectorize_data(x_train,x_test):
   joblib.dump(vectorizer,"models/vectorizer.pkl")
 
   return [x_train,x_test,vectorizer]
+
+
+
+def handle_negation(text):
+    text = str(text).lower().strip()
+
+    # Convert contractions
+    text = re.sub(r"n't\b", " not", text)
+    text = re.sub(r"\s+", " ", text)
+
+    words = text.split()
+
+    negation_words = ["not", "no", "never", "cannot", "without"]
+    modifiers = ["very", "really", "so", "too", "that"]
+
+    new_words = []
+    i = 0
+
+    while i < len(words):
+        word = words[i]
+
+        if word in negation_words and i + 1 < len(words):
+
+            # case: not very good -> not_very_good
+            if words[i + 1] in modifiers and i + 2 < len(words):
+                new_words.append(word + "_" + words[i + 1] + "_" + words[i + 2])
+                i += 3
+
+            # case: not good -> not_good
+            else:
+                new_words.append(word + "_" + words[i + 1])
+                i += 2
+
+        else:
+            new_words.append(word)
+            i += 1
+
+    return " ".join(new_words)
