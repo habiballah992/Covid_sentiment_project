@@ -57,16 +57,62 @@ NEGATION_WORDS = {
 }
 
 MODIFIERS = {
-    "very", "really", "so", "too", "that", "much", "quite", "extremely",
-    "super", "totally", "absolutely"
+    "very", "really", "so", "too", "that", "much", "quite",
+    "extremely", "super", "totally", "absolutely", "really"
 }
 
-SENTIMENT_WORDS = {
+SKIP_WORDS = {
+    "feel", "feels", "feeling", "felt",
+    "look", "looks", "looking",
+    "seem", "seems", "seeming",
+    "sound", "sounds", "sounding",
+    "be", "being",
+    "become", "becomes", "becoming",
+    "get", "gets", "getting",
+    "make", "makes", "making",
+    "cause", "causes", "causing",
+    "create", "creates", "creating"
+}
+
+STOP_CONNECTORS = {
+    "but", "however", "although", "though",
+    "because", "while", "and", "or", "then",
+    "if", "when", "after", "before"
+}
+
+POSITIVE_WORDS = {
     "good", "great", "excellent", "happy", "safe", "hope", "helpful",
     "useful", "better", "best", "love", "like", "positive", "beneficial",
-    "bad", "terrible", "sad", "angry", "scared", "worried", "anxious",
-    "fear", "worse", "worst", "hate", "awful", "horrible", "ruined",
-    "destroyed", "sick", "dangerous", "risk", "death", "dead"
+    "effective", "calm", "protected", "prepared", "ready", "recovering",
+    "improving", "stable", "successful", "encouraging", "relieved",
+    "normal", "controlled", "decreasing", "dropping", "lower"
+}
+
+NEGATIVE_WORDS = {
+    "bad", "terrible", "sad", "angry", "scared", "afraid", "worried",
+    "anxious", "stressed", "panic", "fear", "worse", "worst", "hate",
+    "awful", "horrible", "ruined", "destroyed", "sick", "dangerous",
+    "risky", "risk", "death", "dead", "unsafe", "severe", "spreading",
+    "increasing", "rising", "suffering", "full", "pressure", "failed",
+    "failing", "shortage", "shortages", "crowded", "infected", "infection",
+    "outbreak", "wave"
+}
+
+# Words li ila jaw m3a negation kaywelliw positive
+NEGATION_TO_POS = {
+    "bad", "terrible", "awful", "horrible",
+    "scared", "afraid", "worried", "anxious", "stressed",
+    "dangerous", "risky", "severe", "panic", "fear",
+    "high", "increasing", "rising", "spreading",
+    "worse", "worst", "sick", "infected"
+}
+
+# Words li ila jaw m3a negation kaywelliw negative
+NEGATION_TO_NEG = {
+    "good", "great", "happy", "safe", "helpful", "useful",
+    "better", "effective", "protected", "prepared", "ready",
+    "working", "recovering", "improving", "calm", "stable",
+    "controlled", "successful"
 }
 
 
@@ -98,42 +144,68 @@ def handle_negation(text):
     words = text.split()
 
     new_words = []
+    i = 0
 
-    for i, word in enumerate(words):
+    while i < len(words):
+        word = words[i]
         new_words.append(word)
 
         if word in NEGATION_WORDS:
-            window = words[i + 1:i + 5]
+            window = words[i + 1:i + 7]
 
-            for candidate in window:
-                if candidate in MODIFIERS:
+            # no longer scared -> no_longer_scared_pos
+            if len(window) >= 2 and window[0] == "longer":
+                target = window[1]
+
+                if target in NEGATION_TO_POS or target in NEGATIVE_WORDS:
+                    new_words.append(f"{word}_longer_{target}_pos")
+                    i += 1
                     continue
 
-                if candidate in SENTIMENT_WORDS:
-                    new_words.append(f"not_{candidate}")
+                if target in NEGATION_TO_NEG or target in POSITIVE_WORDS:
+                    new_words.append(f"{word}_longer_{target}_neg")
+                    i += 1
+                    continue
+
+            # not under control -> not_under_control_neg
+            if len(window) >= 2 and window[0] == "under" and window[1] == "control":
+                new_words.append(f"{word}_under_control_neg")
+                i += 1
+                continue
+
+            for candidate in window:
+                if candidate in STOP_CONNECTORS:
                     break
+
+                if candidate in MODIFIERS or candidate in SKIP_WORDS:
+                    continue
+
+                # not scared / not dangerous / no panic => positive
+                if candidate in NEGATION_TO_POS:
+                    new_words.append(f"{word}_{candidate}_pos")
+                    break
+
+                # not safe / not good / not working => negative
+                if candidate in NEGATION_TO_NEG:
+                    new_words.append(f"{word}_{candidate}_neg")
+                    break
+
+                # general rule: not + negative word => positive
+                if candidate in NEGATIVE_WORDS:
+                    new_words.append(f"{word}_{candidate}_pos")
+                    break
+
+                # general rule: not + positive word => negative
+                if candidate in POSITIVE_WORDS:
+                    new_words.append(f"{word}_{candidate}_neg")
+                    break
+
+        i += 1
 
     return " ".join(new_words)
 
-
 def prepare_text_for_model(text):
     return handle_negation(text)
-
-
-def normalize_sentiment_value(value):
-    value = str(value).lower().strip()
-
-    if value in ["positive", "pos", "1"]:
-        return "pos"
-
-    if value in ["negative", "neg", "-1"]:
-        return "neg"
-
-    if value in ["neutral", "natural", "neu", "nat", "0"]:
-        return "neu"
-
-    return value
-
 
 def detect_columns(df):
     text_candidates = [
@@ -188,6 +260,56 @@ def load_data():
     )
 
 
+
+def normalize_sentiment_value(value):
+    value = str(value).lower().strip()
+
+    positive_values = [
+        "positive",
+        "pos",
+        "positif",
+        "1",
+        "p"
+    ]
+
+    negative_values = [
+        "negative",
+        "neg",
+        "negatif",
+        "-1",
+        "n"
+    ]
+
+    neutral_values = [
+        "neutral",
+        "natural",
+        "neu",
+        "nat",
+        "neutre",
+        "0"
+    ]
+
+    if value in positive_values:
+        return "pos"
+
+    if value in negative_values:
+        return "neg"
+
+    if value in neutral_values:
+        return "neu"
+
+    return value
+
+
+
+
+
+
+
+
+
+
+
 def cleaning_data(df):
     text_col, label_col = detect_columns(df)
 
@@ -206,9 +328,9 @@ def cleaning_data(df):
 
     df = df[df["clean_tweet"].str.strip() != ""]
     df = df[df["sentiment"].isin(["pos", "neg", "neu"])]
-
+    
     df = df.drop_duplicates(subset=["clean_tweet"])
-
+    
     print("\nDataset shape after cleaning:", df.shape)
     print("\nSentiment distribution:")
     print(df["sentiment"].value_counts())
@@ -259,80 +381,75 @@ def vectorize_data(x_train, x_test):
 def apply_sentiment_rules(original_text, predicted_label, confidence=None):
     clean = basic_clean_text(original_text)
     prepared = prepare_text_for_model(original_text)
-
-    negative_phrases = [
-        "not happy",
-        "not good",
-        "not safe",
-        "not satisfied",
-        "not useful",
-        "not helpful",
-        "not better",
-        "not comfortable",
-        "not okay",
-        "i hate",
-        "hate covid",
-        "bad",
-        "terrible",
-        "awful",
-        "horrible",
-        "sad",
-        "angry",
-        "scared",
-        "worried",
-        "anxious",
-        "fear",
-        "worse",
-        "worst",
-        "ruined",
-        "destroyed",
-        "dangerous"
-    ]
-
-    positive_phrases = [
-        "not bad",
-        "good",
-        "great",
-        "excellent",
-        "happy",
-        "safe",
-        "hope",
-        "helpful",
-        "useful",
-        "better",
-        "best",
-        "love",
-        "positive",
-        "beneficial",
-        "effective"
-    ]
-
-    negative_tokens = [
-        "not_happy",
-        "not_good",
-        "not_safe",
-        "not_satisfied",
-        "not_useful",
-        "not_helpful",
-        "not_better"
-    ]
+    tokens = prepared.split()
 
     current_conf = 0.0 if confidence is None else float(confidence)
 
-    has_negative = any(phrase in clean for phrase in negative_phrases)
-    has_negative = has_negative or any(token in prepared for token in negative_tokens)
+    # 1) Negation tokens generated by handle_negation
+    positive_negation = any(token.endswith("_pos") for token in tokens)
+    negative_negation = any(token.endswith("_neg") for token in tokens)
 
-    has_positive = any(phrase in clean for phrase in positive_phrases)
+    if positive_negation:
+        return "pos", max(current_conf, 0.92), "positive negation rule"
 
-    if clean.startswith("not bad"):
-        return "pos", max(current_conf, 0.82), "positive phrase rule: not bad"
+    if negative_negation:
+        return "neg", max(current_conf, 0.92), "negative negation rule"
 
-    if has_negative:
-        if normalize_sentiment_value(predicted_label) != "neg" or current_conf < 0.90:
-            return "neg", max(current_conf, 0.90), "negative phrase / negation rule"
+    # 2) Clear negative phrases only, not single words like scared/fear
+    clear_negative_phrases = [
+        "i am scared",
+        "people are scared",
+        "families are scared",
+        "students are scared",
+        "i am afraid",
+        "people are afraid",
+        "i am worried",
+        "people are worried",
+        "families are worried",
+        "i feel unsafe",
+        "people feel unsafe",
+        "workers feel unsafe",
+        "the situation is dangerous",
+        "the virus is dangerous",
+        "the variant is dangerous",
+        "cases are increasing",
+        "cases are rising",
+        "infections are increasing",
+        "the virus is spreading",
+        "there is panic",
+        "hospital is full",
+        "hospitals are full",
+        "patients are suffering",
+        "death rate is increasing",
+        "health system is under pressure"
+    ]
 
-    if has_positive and not has_negative:
-        if normalize_sentiment_value(predicted_label) != "pos" or current_conf < 0.85:
-            return "pos", max(current_conf, 0.85), "positive phrase rule"
+    clear_positive_phrases = [
+        "people feel safe",
+        "people are safe",
+        "families feel safe",
+        "the situation is better",
+        "cases are decreasing",
+        "cases are dropping",
+        "risk is lower",
+        "under control",
+        "vaccine is effective",
+        "patients are recovering",
+        "patients are improving",
+        "good news",
+        "positive update",
+        "hospital is calm",
+        "people are calm"
+    ]
+
+    has_clear_negative = any(phrase in clean for phrase in clear_negative_phrases)
+    has_clear_positive = any(phrase in clean for phrase in clear_positive_phrases)
+
+    if has_clear_negative:
+        return "neg", max(current_conf, 0.85), "clear negative rule"
+
+    if has_clear_positive:
+        return "pos", max(current_conf, 0.85), "clear positive rule"
 
     return predicted_label, confidence, None
+

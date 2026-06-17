@@ -5,11 +5,12 @@ from pathlib import Path
 from faster_whisper import WhisperModel
 
 
-def load_whisper_model(model_size="base"):
+def load_whisper_model(model_size="small"):
     return WhisperModel(
         model_size,
         device="cpu",
-        compute_type="int8"
+        compute_type="int8",
+        cpu_threads=6
     )
 
 
