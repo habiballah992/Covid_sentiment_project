@@ -235,14 +235,14 @@ def vectorize_data(x_train, x_test):
     MODELS_DIR.mkdir(exist_ok=True)
 
     vectorizer = TfidfVectorizer(
-        max_features=50000,
-        ngram_range=(1, 3),
-        min_df=1,
-        max_df=0.95,
-        sublinear_tf=True,
-        token_pattern=r"(?u)\b[a-zA-Z_]{2,}\b",
-        dtype=np.float32
-    )
+    max_features=12000,
+    ngram_range=(1, 2),
+    min_df=2,
+    max_df=0.95,
+    sublinear_tf=True,
+    token_pattern=r"(?u)\b[a-zA-Z_]{2,}\b",
+    dtype=np.float32
+)
 
     x_train_vectorized = vectorizer.fit_transform(x_train)
     x_test_vectorized = vectorizer.transform(x_test)
