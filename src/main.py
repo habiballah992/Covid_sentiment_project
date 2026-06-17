@@ -1,34 +1,33 @@
-from data_processing import load_data,cleaning_data,vectorize_data,split_data
+import sys
+
+from data_processing import load_data, cleaning_data, split_data, vectorize_data
 from train import train_model
-from test_models import test_model,evaluate_model
+from test_models import test_model, evaluate_model
 
 
-# 1-loading data
-df=load_data()
+df = load_data()
 
-# 2-cleaning data
-df=cleaning_data(df)
+df = cleaning_data(df)
 
-# 3-split data
-x_train,x_test,y_train,y_test=split_data(df)
+x_train, x_test, y_train, y_test = split_data(df)
 
-# 4- vectorize the data
-x_train_vectorized,x_test_vectorized,vectorizer=vectorize_data(x_train,x_test)
+x_train_vectorized, x_test_vectorized, vectorizer = vectorize_data(x_train, x_test)
 
-# 5- training the models (RandomForest and SVM)
-RandomForest=train_model('RandomForest',x_train_vectorized,y_train)
-svm=train_model("svm",x_train_vectorized,y_train)
+svm = train_model("svm", x_train_vectorized, y_train)
 
-# 6-test the models
-R_ypred=test_model(RandomForest,x_test_vectorized)
-S_ypred=test_model(svm,x_test_vectorized)
+svm_pred = test_model(svm, x_test_vectorized)
 
-# 7-Evaluation and compare the models
- # RandomForest
-print("Model RandomForest:\n")
-evaluate_model(y_test,R_ypred)
+print("\n==============================")
+print("Model: SVM")
+print("==============================")
+evaluate_model(y_test, svm_pred)
 
- #SVM
-print("Model SVM:\n")
-evaluate_model(y_test,S_ypred)
 
+if "--rf" in sys.argv:
+    random_forest = train_model("RandomForest", x_train_vectorized, y_train)
+    rf_pred = test_model(random_forest, x_test_vectorized)
+
+    print("\n==============================")
+    print("Model: RandomForest")
+    print("==============================")
+    evaluate_model(y_test, rf_pred)

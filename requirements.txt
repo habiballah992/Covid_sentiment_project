@@ -10,3 +10,11 @@ pyaudio
 faster-whisper
 sounddevice
 streamlit
+streamlit
+pandas
+numpy
+scikit-learn
+joblib
+faster-whisper
+sounddevice
+scipy

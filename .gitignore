@@ -59,3 +59,16 @@ Thumbs.db
 .venv/
 __pycache__/
 *.pyc
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+.vscode/
+
+# Cache
+.streamlit/
