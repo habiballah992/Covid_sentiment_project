@@ -4,5 +4,4 @@ numpy
 scikit-learn
 joblib
 plotly
-openai-whisper
-torch
+faster-whisper
