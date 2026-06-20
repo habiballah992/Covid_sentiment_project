@@ -1,18 +1,8 @@
-<<<<<<< HEAD
+streamlit>=1.45.0
 pandas>=2.0
 numpy>=1.26
 scikit-learn>=1.4
 matplotlib>=3.8
 joblib>=1.3
-jupyter>=1.0
-ipykernel>=6.0
-streamlit
-=======
-streamlit>=1.45.0
->>>>>>> 6921ea37baa4e1519f23bbf0a077460dc6ec951c
-pandas
-numpy
-scikit-learn
-joblib
-plotly
+plotly>=5.20
 faster-whisper==1.1.1
